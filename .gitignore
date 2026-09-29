@@ -1,0 +1,14 @@
+# Swift Package Manager build output
+.build/
+.swiftpm/
+
+# Built app bundle and DMG (build.sh / make-dmg.sh regenerate these from source)
+StayAwake.app/
+StayAwake.dmg
+
+# Editor / tooling state
+.vscode/
+.remember/
+.DS_Store
+icon-art/gen_icon.swift
+icon-art/icon_master_v3.png
