@@ -38,6 +38,11 @@ echo "==> Mounting and laying out the Finder window..."
 MOUNT_DIR="/Volumes/${VOL_NAME}"
 hdiutil attach "$TMP_DMG" -mountpoint "$MOUNT_DIR" -nobrowse -quiet
 
+# Spotlight indexing a freshly-written volume is what actually holds it busy for
+# the detach later; tell it not to bother rather than fighting that after the fact.
+touch "$MOUNT_DIR/.metadata_never_index"
+mdutil -i off "$MOUNT_DIR" >/dev/null 2>&1 || true
+
 osascript <<OSAEOF
 tell application "Finder"
     tell disk "${VOL_NAME}"
@@ -56,17 +61,64 @@ tell application "Finder"
         open
         update without registering applications
         delay 1
+        close
     end tell
 end tell
 OSAEOF
 
 echo "==> Unmounting..."
 sync
-hdiutil detach "$MOUNT_DIR" -quiet
+sleep 1
+# Finder can briefly hold the volume open right after the AppleScript closes its
+# window. hdiutil detach alone can get stuck on this even with -force; when it
+# does, fall back to diskutil unmountDisk (which clears the Finder-side lock)
+# and then hdiutil detach the whole device to make sure it's actually released,
+# not just unmounted -- a device left attached-but-unmounted still blocks the
+# hdiutil convert step below with "Resource temporarily unavailable".
+DISK_ID=$(diskutil info "$MOUNT_DIR" | awk -F': *' '/Part of Whole/{print $2}')
+DETACHED=0
+for attempt in 1 2 3; do
+    if hdiutil detach "$MOUNT_DIR" -quiet 2>/dev/null; then
+        DETACHED=1
+        break
+    fi
+    sleep 2
+done
+if [ "$DETACHED" -ne 1 ] && [ -n "$DISK_ID" ]; then
+    echo "==> Normal detach didn't clear it, forcing via diskutil..."
+    diskutil unmountDisk force "$DISK_ID" || true
+    sleep 2
+    for attempt in 1 2 3 4 5; do
+        if hdiutil detach "/dev/$DISK_ID" -force -quiet 2>/dev/null; then
+            DETACHED=1
+            break
+        fi
+        sleep 3
+    done
+fi
+if [ "$DETACHED" -ne 1 ]; then
+    echo "==> Could not fully detach /dev/$DISK_ID, aborting."
+    exit 1
+fi
+
+# A forced unmount needs a beat before the backing image file is free to read again.
+sleep 3
 
 echo "==> Compressing final DMG..."
 rm -f "$DMG_NAME"
-hdiutil convert "$TMP_DMG" -format UDZO -imagekey zlib-level=9 -o "$DMG_NAME" >/dev/null
+CONVERTED=0
+for attempt in 1 2 3; do
+    if hdiutil convert "$TMP_DMG" -format UDZO -imagekey zlib-level=9 -o "$DMG_NAME" >/dev/null 2>/tmp/dmg_convert_err.log; then
+        CONVERTED=1
+        break
+    fi
+    sleep 3
+done
+if [ "$CONVERTED" -ne 1 ]; then
+    echo "==> hdiutil convert failed after retries:"
+    cat /tmp/dmg_convert_err.log
+    exit 1
+fi
 rm -f "$TMP_DMG"
 rm -rf "$STAGE_DIR"
 
