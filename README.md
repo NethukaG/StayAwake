@@ -46,21 +46,44 @@ even if the app crashes or gets force-quit.
 
 ## Installing
 
-Two ways to get it, same app either way:
+Three ways to get it. All three install the exact same app; they only
+differ in how much Gatekeeper friction you hit on first launch.
 
-**Direct download (no coding required).** Grab `StayAwake.dmg` from the
-[latest release](../../releases/latest), open it, and drag StayAwake into
-Applications; the disk image itself shows you that step. The very first
-time you open the app, macOS will likely refuse a plain double-click
-because this build is ad-hoc signed rather than notarized by Apple (that
-needs a paid $99/year developer account, which this free project doesn't
-have). Right-click StayAwake and choose **Open** once, or go to **System
-Settings → Privacy & Security → Open Anyway** if that button doesn't show
-up. After that, normal double-clicks work fine forever. The DMG's
-background image has this written on it too, so it's not just here.
+**Install via Terminal (recommended, no Gatekeeper warning at all).**
+Paste this into Terminal:
 
-**Build from source.** For anyone comfortable with a terminal, or who'd
-rather build it themselves than trust a downloaded binary:
+```bash
+curl -fsSL https://raw.githubusercontent.com/ngamaarachchige-creator/StayAwake/main/install.sh | bash
+```
+
+This isn't a trick or a bypass of anything security-relevant. macOS's
+"Apple could not verify" warning is triggered by the `com.apple.quarantine`
+flag, which Safari, Chrome, Mail, and Messages all attach automatically to
+anything they download, precisely so Gatekeeper knows to run its full
+identity check on it. `curl` never attaches that flag (nothing about a
+plain file transfer does), so there's nothing for Gatekeeper to react to,
+the same way it wouldn't react to a file you wrote yourself. The app that
+lands in `/Applications` is byte-for-byte the same `StayAwake.app` as the
+DMG below; you can `diff` them if you want to check.
+
+If you'd rather read the script before running it, it's
+[`install.sh`](install.sh) in this repo, or clone the repo and run
+`./install.sh` locally.
+
+**Direct download (drag-and-drop, no terminal).** Grab `StayAwake.dmg`
+from the [latest release](../../releases/latest), open it, and drag
+StayAwake into Applications. Because this comes through a browser, macOS
+*will* flag it: this build is ad-hoc signed rather than notarized by
+Apple (notarization needs a paid $99/year developer account, which this
+free project doesn't have yet). On first launch, macOS 15+ (Sequoia and
+later) won't even offer an "Open Anyway" button on the plain double-click
+dialog, so go to **System Settings → Privacy & Security**, scroll to the
+Security section, and click **Open Anyway** next to the mention of
+StayAwake, then confirm with your password or Touch ID when asked. After
+that one time, normal double-clicks work forever.
+
+**Build from source.** For anyone comfortable with a terminal who'd
+rather build it themselves than trust either downloaded binary:
 
 ```bash
 git clone https://github.com/ngamaarachchige-creator/StayAwake.git
@@ -76,7 +99,17 @@ code-signs it, and (with `--install`) copies it into `/Applications` and
 launches it. Run it without `--install` if you just want the built
 `.app` in this folder without touching `/Applications`. `./make-dmg.sh`
 builds the `.dmg` described above from a built `.app` (building it first
-if needed); that's how release assets get made.
+if needed); that's how release assets get made. `install.sh` downloads
+the latest published DMG rather than building, so it works without Xcode.
+
+**Why not just always avoid the warning?** Because the warning is doing
+its actual job for the two paths that go through a browser or an app
+store; it exists to make people pause before running unidentified code.
+The Terminal path above doesn't disable that check or lie to it, it just
+isn't the kind of transfer the check watches. Proper notarization (the
+$99/year Apple Developer route) is still the only way to make the
+*direct download* path warning-free too, and is on the roadmap below if
+this project ever justifies the cost.
 
 ## First-run setup
 
