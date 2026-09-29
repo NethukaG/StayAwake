@@ -26,6 +26,21 @@ fi
 
 echo "==> Staging DMG contents..."
 cp -R "$APP_PATH" "$STAGE_DIR/"
+
+echo "==> Setting the Finder icon directly on the staged app..."
+# CFBundleIconFile is enough for the installed app, but Finder can show a stale
+# cached icon for a freshly-mounted disk image (LaunchServices caches bundle
+# icons by bundle identifier, and that cache does not always refresh just
+# because the file on disk changed). Setting a custom Finder icon directly on
+# the staged .app sidesteps that cache entirely: Finder reads it straight off
+# the file, the same technique other DMG-building tools use.
+SETICON_BIN="$(mktemp -u /tmp/stayawake-seticon-XXXXXX)"
+swiftc -O "icon-art/seticon.swift" -o "$SETICON_BIN" 2>/dev/null
+if [ -x "$SETICON_BIN" ]; then
+    "$SETICON_BIN" "AppIcon.icns" "$STAGE_DIR/${APP_NAME}.app" || true
+    rm -f "$SETICON_BIN"
+fi
+
 ln -s /Applications "$STAGE_DIR/Applications"
 mkdir "$STAGE_DIR/.background"
 cp dmg-assets/background.png "$STAGE_DIR/.background/background.png"
