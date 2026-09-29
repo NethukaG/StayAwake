@@ -1010,9 +1010,15 @@ struct SetupFlowView: View {
 
             HStack {
                 if step != .welcome && step != .done {
-                    Button("Back") { goBack() }
-                        .buttonStyle(.plain)
-                        .foregroundStyle(.secondary)
+                    Button {
+                        goBack()
+                    } label: {
+                        Label("Back", systemImage: "chevron.left")
+                            .labelStyle(.titleAndIcon)
+                            .font(.callout.weight(.medium))
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.regular)
                 }
                 Spacer()
                 Button(nextButtonTitle) {
