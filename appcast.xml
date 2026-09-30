@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
     <channel>
         <title>StayAwake Updates</title>
-        <link>https://raw.githubusercontent.com/ngamaarachchige-creator/StayAwake/main/appcast.xml</link>
+        <link>https://raw.githubusercontent.com/NethukaG/StayAwake/main/appcast.xml</link>
         <description>Update feed for StayAwake, a native macOS menu bar app that keeps your Mac awake through a closed lid.</description>
         <language>en</language>
 <!-- RELEASES -->
@@ -14,9 +14,9 @@
             <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
             <description><![CDATA[<ul><li>Added auto-updates: Check for Updates in the right-click menu, and automatic background checks once a day.</li></ul>]]></description>
             <enclosure
-                url="https://github.com/ngamaarachchige-creator/StayAwake/releases/download/v1.12.0/StayAwake.dmg"
-                sparkle:edSignature="MYwyuAQ6GrMeEQm+244YLAb6LhSejfFnvBziBrZV5Q5Vwr6MnYkC7r1lxoNHxsO6q6F/ABPH8w01dQCa8Dw+DQ=="
-                length="1208685"
+                url="https://github.com/NethukaG/StayAwake/releases/download/v1.12.0/StayAwake.dmg"
+                sparkle:edSignature="X5QphG2HNywCCgQP+D+Wel1nLUGdqwaNC8KvDjqCXg+pKMyaMNKnVFXAM/MRaLl1xbDpENN5ESwx4IQkDRj4BA=="
+                length="1208729"
                 type="application/octet-stream" />
         </item>
 

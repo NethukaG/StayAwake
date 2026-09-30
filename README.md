@@ -22,9 +22,9 @@
   <img alt="macOS 13+" src="https://img.shields.io/badge/macOS-13%2B-black?logo=apple&logoColor=white">
   <img alt="Swift" src="https://img.shields.io/badge/Swift-5.9-orange?logo=swift&logoColor=white">
   <img alt="SwiftUI" src="https://img.shields.io/badge/SwiftUI-Native-blue">
-  <a href="../../releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/ngamaarachchige-creator/StayAwake"></a>
-  <img alt="License" src="https://img.shields.io/github/license/ngamaarachchige-creator/StayAwake">
-  <img alt="Downloads" src="https://img.shields.io/github/downloads/ngamaarachchige-creator/StayAwake/total">
+  <a href="../../releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/NethukaG/StayAwake"></a>
+  <img alt="License" src="https://img.shields.io/github/license/NethukaG/StayAwake">
+  <img alt="Downloads" src="https://img.shields.io/github/downloads/NethukaG/StayAwake/total">
 </p>
 
 If StayAwake keeps your Mac from falling asleep at the wrong moment, a star
@@ -103,7 +103,7 @@ differ in how much Gatekeeper friction you hit on first launch.
 Paste this into Terminal:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ngamaarachchige-creator/StayAwake/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/NethukaG/StayAwake/main/install.sh | bash
 ```
 
 This isn't a trick or a bypass of anything security-relevant. macOS's
@@ -136,7 +136,7 @@ that one time, normal double-clicks work forever.
 rather build it themselves than trust either downloaded binary:
 
 ```bash
-git clone https://github.com/ngamaarachchige-creator/StayAwake.git
+git clone https://github.com/NethukaG/StayAwake.git
 cd StayAwake
 ./build.sh --install
 ```

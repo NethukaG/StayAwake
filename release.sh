@@ -19,7 +19,7 @@ cd "$(dirname "$0")"
 
 VERSION="${1:?Usage: ./release.sh <version> \"<release notes>\"}"
 NOTES="${2:-}"
-REPO="ngamaarachchige-creator/StayAwake"
+REPO="NethukaG/StayAwake"
 SIGN_UPDATE="sparkle-tools/bin/sign_update"
 
 if [ ! -x "$SIGN_UPDATE" ]; then

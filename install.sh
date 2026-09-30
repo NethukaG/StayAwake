@@ -16,11 +16,11 @@
 # path needs.
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/ngamaarachchige-creator/StayAwake/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/NethukaG/StayAwake/main/install.sh | bash
 #
 set -euo pipefail
 
-REPO="ngamaarachchige-creator/StayAwake"
+REPO="NethukaG/StayAwake"
 DMG_URL="https://github.com/${REPO}/releases/latest/download/StayAwake.dmg"
 APP_NAME="StayAwake"
 TMP_DMG="$(mktemp -u "/tmp/${APP_NAME}-install-XXXXXX").dmg"

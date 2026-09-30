@@ -27,7 +27,7 @@
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
 	<key>SUFeedURL</key>
-	<string>https://raw.githubusercontent.com/ngamaarachchige-creator/StayAwake/main/appcast.xml</string>
+	<string>https://raw.githubusercontent.com/NethukaG/StayAwake/main/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>hifLen77bXkk8isYmNt9fMhMF3ZZRh+pL9bxhfyR9p8=</string>
 	<key>SUScheduledCheckInterval</key>
