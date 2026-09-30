@@ -28,6 +28,29 @@
 If StayAwake keeps your Mac from falling asleep at the wrong moment, a star
 helps other people find it.
 
+## Preview
+
+<p align="center">
+  <img src="readme-assets/toggle-basic.gif" width="480" alt="Toggling Stay Awake on and off from the menu bar">
+</p>
+
+<table>
+<tr>
+<td width="50%" valign="top">
+<p align="center">
+  <img src="readme-assets/menu-overview.png" width="100%" alt="Right-click menu with all of Stay Awake's settings">
+  <br><sub>Right-click the icon for duration, auto-enable, and more</sub>
+</p>
+</td>
+<td width="50%" valign="top">
+<p align="center">
+  <img src="readme-assets/lid-closed-menu.gif" width="100%" alt="Turning on Lid-Closed Mode">
+  <br><sub>Lid-Closed Mode keeps a session alive with the lid shut</sub>
+</p>
+</td>
+</tr>
+</table>
+
 It exists because the usual fix for this, `caffeinate` or a shell-script
 Claude Code plugin using it, is fragile. It's easy to end up with a stray
 background process that never lets go, and a laptop that's still running
@@ -148,6 +171,10 @@ clicking through, and every choice you make there can be changed later
 from the right-click menu, including reopening the whole guide again
 via **Show Setup Guide…**.
 
+<p align="center">
+  <img src="readme-assets/first-run-setup.gif" width="480" alt="Walking through the first-run guided setup">
+</p>
+
 ## Using it
 
 - **Click** the menu bar icon to open the toggle. That's the whole
@@ -165,6 +192,23 @@ build, anything where you already know you don't want the Mac dozing
 off partway through). From then on, Stay Awake turns itself on the
 moment any app on that list launches, and back off once none of them
 are running anymore.
+
+<table>
+<tr>
+<td width="50%" valign="top">
+<p align="center">
+  <img src="readme-assets/auto-enable-menu.gif" width="100%" alt="Adding an app to the auto-enable list">
+  <br><sub>Adding an app from the right-click menu</sub>
+</p>
+</td>
+<td width="50%" valign="top">
+<p align="center">
+  <img src="readme-assets/auto-enable-live.gif" width="100%" alt="Stay Awake turning itself on automatically">
+  <br><sub>Turns itself on the moment the app launches</sub>
+</p>
+</td>
+</tr>
+</table>
 
 This is watching for the app being *open*, not for it being busy, and
 it's a system-wide toggle either way, the same one the popover switch

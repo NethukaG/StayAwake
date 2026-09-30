@@ -13,3 +13,7 @@ StayAwake.dmg
 icon-art/gen_icon.swift
 icon-art/icon_master_v3.png
 icon-art/icon_fullfill.png
+
+# Raw source screen recordings for README GIFs (large; the optimized GIFs in
+# readme-assets/ are what's actually committed and shown in the README).
+readme-assets/recordings/
