@@ -5,8 +5,10 @@
 <h1 align="center">StayAwake</h1>
 
 <p align="center">
-  A small, native macOS menu bar app that keeps your Mac awake, on purpose,
-  and only for as long as you actually mean it to.
+  Keeps a long-running task, like an AI coding agent session, alive through
+  a closed lid, so you can get up and walk somewhere or switch seats
+  without killing it, then lets your Mac sleep normally again once you're
+  done. On purpose, and only for as long as you actually mean it to.
 </p>
 
 <p align="center">
