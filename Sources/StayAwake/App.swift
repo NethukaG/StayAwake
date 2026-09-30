@@ -491,21 +491,32 @@ final class StayAwakeManager: ObservableObject {
 struct ToggleSwitch: View {
     @Binding var isOn: Bool
     var action: () -> Void
+
+    private let width: CGFloat = 44
+    private let height: CGFloat = 24
+    private let knobSize: CGFloat = 20
+    private let knobInset: CGFloat = 2
+
     var body: some View {
         Button(action: action) {
-            ZStack(alignment: isOn ? .trailing : .leading) {
+            ZStack(alignment: .leading) {
                 Capsule()
                     .fill(isOn ? Color.green : Color(white: 0.32))
-                    .frame(width: 44, height: 24)
+                    .frame(width: width, height: height)
                 Circle()
                     .fill(Color.white)
-                    .frame(width: 20, height: 20)
-                    .padding(2)
+                    .frame(width: knobSize, height: knobSize)
                     .shadow(radius: 1)
+                    .padding(knobInset)
+                    // A continuous offset, not a ZStack alignment switch -- alignment changes
+                    // are not interpolated by SwiftUI, so the knob would just jump to the new
+                    // side instead of sliding. This is what gives it the native, WiFi-toggle-like
+                    // glide instead of an instant snap.
+                    .offset(x: isOn ? (width - knobSize - knobInset * 2) : 0)
             }
         }
         .buttonStyle(.plain)
-        .animation(.easeInOut(duration: 0.18), value: isOn)
+        .animation(.spring(response: 0.28, dampingFraction: 0.86), value: isOn)
     }
 }
 
