@@ -741,8 +741,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // startingUpdater: true means it begins its own periodic background check (interval set
     // by SUScheduledCheckInterval in Info.plist) as soon as this is created; "Check for
     // Updates..." below just triggers an on-demand check on top of that.
-    private let updaterController = SPUStandardUpdaterController(
-        startingUpdater: true,
+    // lazy + startingUpdater: false: a stored-property initializer for this would run during
+    // AppDelegate's own init(), before applicationDidFinishLaunching gets a chance to set
+    // NSApp.applicationIconImage below -- Sparkle reads the host app icon once, at controller
+    // creation time, so it was permanently caching the generic fallback icon. Making this lazy
+    // and starting the updater manually (after the icon is set) fixes that ordering.
+    private lazy var updaterController = SPUStandardUpdaterController(
+        startingUpdater: false,
         updaterDelegate: nil,
         userDriverDelegate: nil
     )
@@ -765,6 +770,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
            let icon = NSImage(contentsOfFile: iconPath) {
             NSApp.applicationIconImage = icon
         }
+
+        // Now that the real icon is set, create/start the updater controller so Sparkle's
+        // own dialogs pick it up instead of caching the generic fallback.
+        updaterController.startUpdater()
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         updateIcon()

@@ -1,0 +1,18 @@
+Fix: Sparkle update dialogs showing generic dark icon instead of real app icon
+
+The updaterController was a stored property, so its initializer ran
+during AppDelegate's own init() -- before applicationDidFinishLaunching
+had a chance to set NSApp.applicationIconImage. Sparkle reads and
+caches the host app's icon once, at controller-creation time, so it
+was permanently locking in the generic fallback rendering no matter
+what NSApp.applicationIconImage was set to afterward.
+
+Made updaterController lazy (startingUpdater: false) and moved
+updaterController.startUpdater() to run right after the real icon is
+set in applicationDidFinishLaunching, so Sparkle picks up the correct
+icon when it actually creates its updater/host objects.
+
+Release v1.12.3.
+
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01UTn7NygdR8ZruGkYqCS7Ud
