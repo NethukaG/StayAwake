@@ -1,7 +1,32 @@
-# Stay Awake
+<p align="center">
+  <img src="readme-assets/icon.png" width="120" height="120" alt="StayAwake icon">
+</p>
 
-A small, native macOS menu bar app that keeps your Mac awake, on purpose, and
-only for as long as you actually mean it to.
+<h1 align="center">StayAwake</h1>
+
+<p align="center">
+  A small, native macOS menu bar app that keeps your Mac awake, on purpose,
+  and only for as long as you actually mean it to.
+</p>
+
+<p align="center">
+  <a href="../../releases/latest">Download</a> ·
+  <a href="#installing">Install</a> ·
+  <a href="#first-run-setup">First-run setup</a> ·
+  <a href="#auto-enable-for-apps">Auto-enable</a>
+</p>
+
+<p align="center">
+  <img alt="macOS 13+" src="https://img.shields.io/badge/macOS-13%2B-black?logo=apple&logoColor=white">
+  <img alt="Swift" src="https://img.shields.io/badge/Swift-5.9-orange?logo=swift&logoColor=white">
+  <img alt="SwiftUI" src="https://img.shields.io/badge/SwiftUI-Native-blue">
+  <a href="../../releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/ngamaarachchige-creator/StayAwake"></a>
+  <img alt="License" src="https://img.shields.io/github/license/ngamaarachchige-creator/StayAwake">
+  <img alt="Downloads" src="https://img.shields.io/github/downloads/ngamaarachchige-creator/StayAwake/total">
+</p>
+
+If StayAwake keeps your Mac from falling asleep at the wrong moment, a star
+helps other people find it.
 
 It exists because the usual fix for this, `caffeinate` or a shell-script
 Claude Code plugin using it, is fragile. It's easy to end up with a stray
@@ -10,6 +35,12 @@ flat out, sealed inside a bag, hours later. Stay Awake is a from-scratch
 replacement with an explicit on/off state, a hard safety timeout for the one
 case that actually matters (closing the lid), and cleanup logic that runs
 even if the app crashes or gets force-quit.
+
+## Preview
+
+<p align="center">
+  <img src="readme-assets/demo.gif" width="560" alt="StayAwake demo: clicking the menu bar icon, toggling it on, and the right-click menu">
+</p>
 
 ## What it does
 
