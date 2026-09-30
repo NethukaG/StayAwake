@@ -497,8 +497,18 @@ struct ToggleSwitch: View {
     private let knobSize: CGFloat = 20
     private let knobInset: CGFloat = 2
 
+    // Matches the pattern from AppCoda's ToggleStyle guide (appcoda.com/swiftui-togglestyle):
+    // wrap the state mutation itself in withAnimation, rather than relying only on a passive
+    // .animation(value:) modifier. `action` mutates an @Published property on an external
+    // ObservableObject, outside this view's own transaction, and the implicit modifier alone
+    // was not reliably picking that up while hosted in an NSPanel -- the knob was snapping
+    // instantly instead of sliding. Wrapping the call here fixes that at the source.
     var body: some View {
-        Button(action: action) {
+        Button {
+            withAnimation(.spring(response: 0.28, dampingFraction: 0.86)) {
+                action()
+            }
+        } label: {
             ZStack(alignment: .leading) {
                 Capsule()
                     .fill(isOn ? Color.green : Color(white: 0.32))
@@ -516,6 +526,8 @@ struct ToggleSwitch: View {
             }
         }
         .buttonStyle(.plain)
+        // Kept as a fallback for when isOn changes from outside this button entirely (auto-enable
+        // turning it on because a watched app launched, for example), so that still animates too.
         .animation(.spring(response: 0.28, dampingFraction: 0.86), value: isOn)
     }
 }
@@ -756,11 +768,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panel.contentViewController = hosting
         popoverPanel = panel
 
-        // Repaint the icon, and reposition the popover if the tuner offset changed, whenever relevant state changes.
+        // Repaint the icon, and resize/reposition the popover if its content actually needs
+        // it (an extra row appeared, or the tuner offset changed), whenever relevant state
+        // changes. This must not touch the window frame on every change unconditionally --
+        // doing so was forcing a synchronous AppKit layout pass on the hosted SwiftUI content
+        // right in the middle of the toggle's own animation, which cut it short and made the
+        // knob look like it was snapping instantly instead of sliding.
         let observer = manager.objectWillChange.sink { [weak self] in
             DispatchQueue.main.async {
                 self?.updateIcon()
-                self?.repositionPopoverIfVisible()
+                self?.resizeAndRepositionPopoverIfNeeded()
             }
         }
         cancellable = observer as AnyObject
@@ -821,10 +838,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     // TEMP DEBUG ONLY: live-move the popover as the tuner sliders change.
-    private func repositionPopoverIfVisible() {
+    // Only actually touches the window frame when the fitting size or target origin has
+    // really changed, so a plain on/off toggle (same size, same origin) leaves the panel's
+    // frame alone and lets the SwiftUI animation inside it play out undisturbed.
+    private func resizeAndRepositionPopoverIfNeeded() {
         guard popoverPanel.isVisible else { return }
+        popoverPanel.contentViewController?.view.layoutSubtreeIfNeeded()
+        let fittingSize = popoverPanel.contentViewController?.view.fittingSize ?? popoverPanel.frame.size
+        if abs(fittingSize.width - popoverPanel.frame.size.width) > 0.5
+            || abs(fittingSize.height - popoverPanel.frame.size.height) > 0.5 {
+            popoverPanel.setContentSize(fittingSize)
+        }
         guard let origin = popoverOrigin(contentSize: popoverPanel.frame.size) else { return }
-        popoverPanel.setFrameOrigin(origin)
+        if abs(origin.x - popoverPanel.frame.origin.x) > 0.5 || abs(origin.y - popoverPanel.frame.origin.y) > 0.5 {
+            popoverPanel.setFrameOrigin(origin)
+        }
     }
 
     // TEMP DEBUG ONLY: opens the slider window and makes sure the popover is visible to nudge.
@@ -978,7 +1006,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     // AGENT NOTE: The Position Tuner debug window (PositionTunerView, showPositionTuner(),
-    // repositionPopoverIfVisible(), and manager.popoverOffsetX/Y) is intentionally kept in
+    // resizeAndRepositionPopoverIfNeeded(), and manager.popoverOffsetX/Y) is intentionally kept in
     // this file but has no UI entry point right now -- it was used once to hand-tune the
     // popover's on-screen offset (settled on offsetX: 7, offsetY: 18, baked in above as the
     // default). If the popover ever needs re-tuning, wire a menu item back up to this method:
