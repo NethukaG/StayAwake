@@ -442,7 +442,12 @@ final class StayAwakeManager: ObservableObject {
             }
             let stillThere = FileManager.default.fileExists(atPath: Config.sudoersPath)
             DispatchQueue.main.async {
-                self.clamshellHelperInstalled = !stillThere
+                // Bug fix: this used to be `!stillThere`, which meant a *successful* removal
+                // (file gone, stillThere == false) set clamshellHelperInstalled to *true* --
+                // exactly backwards. clamshellHelperInstalled should just directly mirror
+                // whether the sudoers file is actually there; completion's meaning (did the
+                // removal succeed) is the thing that wants the negation.
+                self.clamshellHelperInstalled = stillThere
                 completion(!stillThere)
             }
         }

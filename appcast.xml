@@ -7,6 +7,20 @@
         <language>en</language>
 <!-- RELEASES -->
         <item>
+            <title>Version 1.12.2</title>
+            <pubDate>Wed, 30 Sep 2026 15:48:55 +0000</pubDate>
+            <sparkle:version>1.12.2</sparkle:version>
+            <sparkle:shortVersionString>1.12.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<ul><li>Fixed a bug where Disable Lid-Closed Mode removed the permission correctly but the menu kept showing Disable instead of switching to Enable (an inverted boolean in the completion handler).</li></ul>]]></description>
+            <enclosure
+                url="https://github.com/NethukaG/StayAwake/releases/download/v1.12.2/StayAwake.dmg"
+                sparkle:edSignature="xfl+sXJryyLsB+EbsA5/SYSCIdy1gzBcFhAZjAorwjeKxRPO+w/yscnOJYLrvLYSD7tHWeQr1NI7rG+izojvBg=="
+                length="1208965"
+                type="application/octet-stream" />
+        </item>
+
+        <item>
             <title>Version 1.12.1</title>
             <pubDate>Wed, 30 Sep 2026 15:22:50 +0000</pubDate>
             <sparkle:version>1.12.1</sparkle:version>
