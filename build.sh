@@ -20,10 +20,18 @@ swift build -c release
 
 echo "==> Assembling $APP_NAME.app..."
 rm -rf "$APP_BUNDLE"
-mkdir -p "$APP_BUNDLE/Contents/MacOS" "$APP_BUNDLE/Contents/Resources"
+mkdir -p "$APP_BUNDLE/Contents/MacOS" "$APP_BUNDLE/Contents/Resources" "$APP_BUNDLE/Contents/Frameworks"
 cp ".build/release/$APP_NAME" "$APP_BUNDLE/Contents/MacOS/$APP_NAME"
 cp "Info.plist" "$APP_BUNDLE/Contents/Info.plist"
 cp "AppIcon.icns" "$APP_BUNDLE/Contents/Resources/AppIcon.icns"
+
+echo "==> Bundling Sparkle.framework (for Check for Updates)..."
+# SwiftPM links the executable against Sparkle (see the rpath linker setting in
+# Package.swift) but, unlike an Xcode build phase, never copies the framework itself
+# anywhere -- it has to be copied into Contents/Frameworks by hand, here, or the app
+# fails to launch (dyld: Library not loaded) on any machine but this one.
+rm -rf "$APP_BUNDLE/Contents/Frameworks/Sparkle.framework"
+cp -R ".build/release/Sparkle.framework" "$APP_BUNDLE/Contents/Frameworks/Sparkle.framework"
 
 echo "==> Ad-hoc code signing..."
 codesign --force --deep --sign - "$APP_BUNDLE"

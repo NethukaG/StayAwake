@@ -17,3 +17,7 @@ icon-art/icon_fullfill.png
 # Raw source screen recordings for README GIFs (large; the optimized GIFs in
 # readme-assets/ are what's actually committed and shown in the README).
 readme-assets/recordings/
+
+# Sparkle CLI tools (sign_update, generate_appcast) downloaded per-machine for cutting
+# releases -- see release.sh's header comment for how to fetch them.
+sparkle-tools/

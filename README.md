@@ -183,7 +183,22 @@ via **Show Setup Guide…**.
   day-to-day interaction.
 - **Right-click** (or two-finger click) the icon for everything else:
   Lid-Closed Duration, Auto-Enable For Apps, enabling/disabling
-  Lid-Closed Mode, Launch at Login, and Quit.
+  Lid-Closed Mode, Launch at Login, Check for Updates, and Quit.
+
+## Auto-updates
+
+StayAwake checks for new versions automatically (once a day, in the
+background, via [Sparkle](https://sparkle-project.org)) and you can also
+trigger a check any time from the right-click menu's **Check for
+Updates…**. If a newer version is available it downloads the DMG,
+verifies it against the release's EdDSA signature so a tampered or
+corrupted download is refused rather than installed, and offers to
+install and relaunch.
+
+Nothing about this requires the paid Apple Developer account either:
+Sparkle validates updates with its own signature, independent of
+notarization, so it works the same free way the rest of this project's
+distribution does (see [Installing](#installing)).
 
 ## Auto-enable for apps
 
@@ -359,6 +374,10 @@ make-dmg.sh                 Packages StayAwake.app into StayAwake.dmg,
                              with a background image guiding install +
                              the first-launch Gatekeeper step
 dmg-assets/background.png   That background image
+release.sh                  Bumps the version, builds, packages, Sparkle-signs
+                             the DMG, and updates appcast.xml (see below)
+appcast.xml                 Sparkle's update feed; read by every installed
+                             copy of the app to check for new versions
 ```
 
 It's intentionally one file. This is a small, single-purpose utility, not a

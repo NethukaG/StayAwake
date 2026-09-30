@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 import Combine
+import Sparkle
 import IOKit.pwr_mgt
 import ServiceManagement
 import UserNotifications
@@ -732,6 +733,14 @@ struct PositionTunerView: View {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let manager = StayAwakeManager()
+    // startingUpdater: true means it begins its own periodic background check (interval set
+    // by SUScheduledCheckInterval in Info.plist) as soon as this is created; "Check for
+    // Updates..." below just triggers an on-demand check on top of that.
+    private let updaterController = SPUStandardUpdaterController(
+        startingUpdater: true,
+        updaterDelegate: nil,
+        userDriverDelegate: nil
+    )
     private var statusItem: NSStatusItem!
     private var popoverPanel: NSPanel!
     private var cancellable: AnyObject?
@@ -971,6 +980,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         menu.addItem(.separator())
 
+        let updateItem = NSMenuItem(title: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: "")
+        updateItem.target = self
+        menu.addItem(updateItem)
+
+        menu.addItem(.separator())
+
         let quitItem = NSMenuItem(title: "Quit Stay Awake", action: #selector(quit), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
@@ -1068,6 +1083,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func openSetupFlow() {
         showSetupFlow()
+    }
+
+    @objc private func checkForUpdates() {
+        updaterController.checkForUpdates(nil)
     }
 
     @objc private func quit() {
