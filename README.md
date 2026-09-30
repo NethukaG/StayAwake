@@ -36,12 +36,6 @@ replacement with an explicit on/off state, a hard safety timeout for the one
 case that actually matters (closing the lid), and cleanup logic that runs
 even if the app crashes or gets force-quit.
 
-## Preview
-
-<p align="center">
-  <img src="readme-assets/demo.gif" width="560" alt="StayAwake demo: clicking the menu bar icon, toggling it on, and the right-click menu">
-</p>
-
 ## What it does
 
 - Lives in the menu bar only. No Dock icon, no windows cluttering your
