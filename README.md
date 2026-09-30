@@ -126,8 +126,34 @@ whole guide again via **Show Setup Guide…**.
 - **Click** the menu bar icon to open the toggle. That's the whole
   day-to-day interaction.
 - **Right-click** (or two-finger click) the icon for everything else:
-  Lid-Closed Duration, enabling/disabling Lid-Closed Mode, Launch at Login,
-  and Quit.
+  Lid-Closed Duration, Auto-Enable For Apps, enabling/disabling
+  Lid-Closed Mode, Launch at Login, and Quit.
+
+## Auto-enable for apps
+
+Instead of remembering to flip the toggle, you can tell Stay Awake to do
+it for you: right-click the menu bar icon, go to **Auto-Enable For
+Apps**, and **Add App...** to pick one (a render, an export, a long
+build, anything where you already know you don't want the Mac dozing
+off partway through). From then on, Stay Awake turns itself on the
+moment any app on that list launches, and back off once none of them
+are running anymore.
+
+This is watching for the app being *open*, not for it being busy, and
+it's a system-wide toggle either way, the same one the popover switch
+controls; there's no way to keep only specific apps active while
+everything else on the Mac idles; macOS doesn't expose sleep prevention
+at that granularity; the earlier "only keep VS Code running" wording in
+this project's early notes turned out not to be something an app can
+actually do.
+
+If you turn the toggle off by hand while a watched app is still
+running, that manual choice sticks. It won't auto-re-enable itself
+until the next time that app is freshly opened; a currently-running
+instance won't flip it back on out from under you.
+
+Remove an app from the list by clicking it again in that same
+right-click submenu (a checkmark means it's currently on the list).
 
 ## How it works
 
@@ -245,9 +271,6 @@ optional and has nothing to do with permissions.
 
 - Universal (Apple Silicon + Intel) and notarized signed releases.
 - A Windows equivalent.
-- Optional per-app allowlisting while Stay Awake is engaged (e.g. only
-  keep VS Code and its extensions running, let everything else idle
-  normally), floated as an idea, not started.
 
 ## Project layout
 

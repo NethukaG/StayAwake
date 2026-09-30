@@ -4,6 +4,7 @@ import Combine
 import IOKit.pwr_mgt
 import ServiceManagement
 import UserNotifications
+import UniformTypeIdentifiers
 
 // MARK: - Config
 
@@ -23,6 +24,16 @@ private func durationLabel(_ minutes: Int) -> String {
     return minutes == 60 ? "1 Hour" : "\(minutes / 60) Hours"
 }
 
+/// An app StayAwake watches for. While any watched app is running, StayAwake turns itself
+/// on automatically; once none of them are running, it turns itself back off -- but only if
+/// it was that auto-trigger that turned it on in the first place (see `autoEngaged` on the
+/// manager). A manual toggle always takes precedence over this.
+struct WatchedApp: Codable, Equatable, Identifiable {
+    var id: String { bundleID }
+    let bundleID: String
+    let displayName: String
+}
+
 // MARK: - Manager
 
 @MainActor
@@ -38,6 +49,18 @@ final class StayAwakeManager: ObservableObject {
         return stored ?? Config.defaultClamshellMinutes
     }()
 
+    // Apps that auto-engage Stay Awake while any of them is running. See WatchedApp's doc
+    // comment and evaluateAutoTrigger() below for the actual rules.
+    @Published var watchedApps: [WatchedApp] = {
+        guard let data = UserDefaults.standard.data(forKey: "watchedApps"),
+              let decoded = try? JSONDecoder().decode([WatchedApp].self, from: data) else { return [] }
+        return decoded
+    }()
+    /// True when the CURRENT isOn=true was caused by the auto-trigger rather than the user
+    /// clicking the toggle. Used so a watched app quitting only turns Stay Awake back off if
+    /// nothing else (i.e. the user) turned it on independently in the meantime.
+    @Published private(set) var autoEngaged = false
+
     // TEMP DEBUG ONLY: live popover position nudge, set from the Position Tuner window.
     // Default baked in from tuning: offsetX 7, offsetY 18.
     @Published var popoverOffsetX: CGFloat = 7
@@ -49,6 +72,8 @@ final class StayAwakeManager: ObservableObject {
     private var countdownTimer: Timer?
     private var clamshellArmed = false
     private var unlockObserver: NSObjectProtocol?
+    private var workspaceObservers: [NSObjectProtocol] = []
+    private var anyWatchedAppWasRunning = false
 
     init() {
         unlockObserver = DistributedNotificationCenter.default().addObserver(
@@ -57,16 +82,23 @@ final class StayAwakeManager: ObservableObject {
         ) { [weak self] _ in
             Task { @MainActor in self?.handleUnlock() }
         }
+        setupAppWatching()
     }
 
     deinit {
         if let unlockObserver { DistributedNotificationCenter.default().removeObserver(unlockObserver) }
+        for observer in workspaceObservers { NSWorkspace.shared.notificationCenter.removeObserver(observer) }
     }
 
     // MARK: Toggle
 
     func toggle() {
         isOn.toggle()
+        // Any direct interaction with the toggle, on or off, means whatever happens next is
+        // no longer attributable to the auto-trigger -- in particular, turning off manually
+        // while a watched app is still running must NOT get auto-re-engaged by that same app
+        // still running; it only re-engages the next time a watched app freshly launches.
+        autoEngaged = false
         if isOn { start() } else { stop() }
     }
 
@@ -226,6 +258,72 @@ final class StayAwakeManager: ObservableObject {
         if currentSleepDisabledState() == true {
             runPrivilegedPmset(disable: false)
             notify(title: "Stay Awake", body: "Cleared a leftover sleep-prevention setting left over from a previous session.")
+        }
+    }
+
+    // MARK: Auto-enable for watched apps
+
+    private func setupAppWatching() {
+        let nc = NSWorkspace.shared.notificationCenter
+        let launchObs = nc.addObserver(forName: NSWorkspace.didLaunchApplicationNotification, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in self?.evaluateAutoTrigger() }
+        }
+        let termObs = nc.addObserver(forName: NSWorkspace.didTerminateApplicationNotification, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in self?.evaluateAutoTrigger() }
+        }
+        workspaceObservers = [launchObs, termObs]
+        // Deliberately left false here (rather than pre-seeded from the current running
+        // apps) so that if a watched app is already open when Stay Awake launches, the very
+        // first evaluateAutoTrigger() call below sees a false-to-true rising edge and
+        // auto-engages, instead of silently doing nothing just because that app "was already
+        // running before we started watching."
+        evaluateAutoTrigger()
+    }
+
+    private func isAnyWatchedAppRunning() -> Bool {
+        guard !watchedApps.isEmpty else { return false }
+        let runningIDs = Set(NSWorkspace.shared.runningApplications.compactMap { $0.bundleIdentifier })
+        return watchedApps.contains { runningIDs.contains($0.bundleID) }
+    }
+
+    /// The whole auto-trigger rule set lives here, run after every relevant change (an app
+    /// launching or quitting, or the watch list itself changing): auto-ON on a false-to-true
+    /// rising edge (unless already on for some other reason), auto-OFF on a true-to-false
+    /// falling edge but ONLY if this manager was the one that turned it on (autoEngaged) --
+    /// never turn off something the user turned on manually themselves.
+    private func evaluateAutoTrigger() {
+        let running = isAnyWatchedAppRunning()
+        defer { anyWatchedAppWasRunning = running }
+
+        if running && !anyWatchedAppWasRunning {
+            guard !isOn else { return }
+            isOn = true
+            autoEngaged = true
+            start()
+        } else if !running && anyWatchedAppWasRunning {
+            guard isOn, autoEngaged else { return }
+            isOn = false
+            autoEngaged = false
+            stop()
+        }
+    }
+
+    func addWatchedApp(bundleID: String, displayName: String) {
+        guard !watchedApps.contains(where: { $0.bundleID == bundleID }) else { return }
+        watchedApps.append(WatchedApp(bundleID: bundleID, displayName: displayName))
+        persistWatchedApps()
+        evaluateAutoTrigger()
+    }
+
+    func removeWatchedApp(bundleID: String) {
+        watchedApps.removeAll { $0.bundleID == bundleID }
+        persistWatchedApps()
+        evaluateAutoTrigger()
+    }
+
+    private func persistWatchedApps() {
+        if let data = try? JSONEncoder().encode(watchedApps) {
+            UserDefaults.standard.set(data, forKey: "watchedApps")
         }
     }
 
@@ -540,6 +638,18 @@ struct PopoverContent: View {
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 8)
+                } else if manager.isOn && manager.autoEngaged {
+                    Divider()
+                    HStack(spacing: 6) {
+                        Image(systemName: "bolt.fill")
+                            .font(.caption2)
+                        Text("Auto-enabled for a running app")
+                            .font(.caption2)
+                        Spacer()
+                    }
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
                 }
             }
             .padding(.top, arrowHeight)
@@ -798,6 +908,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         durationItem.submenu = durationSubmenu
         menu.addItem(durationItem)
 
+        let autoEnableItem = NSMenuItem(title: "Auto-Enable For Apps", action: nil, keyEquivalent: "")
+        autoEnableItem.submenu = buildAutoEnableSubmenu()
+        menu.addItem(autoEnableItem)
+
         menu.addItem(.separator())
 
         let helperTitle = manager.clamshellHelperInstalled ? "Disable Lid-Closed Mode" : "Enable Lid-Closed Mode…"
@@ -823,6 +937,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(quitItem)
 
         return menu
+    }
+
+    /// Lists the currently-watched apps (click one to stop watching it) plus an "Add App..."
+    /// item that opens a file picker scoped to /Applications. Kept deliberately simple: no
+    /// separate on/off setting for the feature as a whole -- an empty list just means nothing
+    /// is watched, which is the same as the feature being off.
+    private func buildAutoEnableSubmenu() -> NSMenu {
+        let submenu = NSMenu()
+        if manager.watchedApps.isEmpty {
+            let emptyItem = NSMenuItem(title: "No apps added yet", action: nil, keyEquivalent: "")
+            emptyItem.isEnabled = false
+            submenu.addItem(emptyItem)
+        } else {
+            for app in manager.watchedApps.sorted(by: { $0.displayName < $1.displayName }) {
+                let item = NSMenuItem(title: app.displayName, action: #selector(removeWatchedApp(_:)), keyEquivalent: "")
+                item.target = self
+                item.representedObject = app.bundleID
+                item.state = .on
+                item.toolTip = "Click to stop auto-enabling for \(app.displayName)"
+                submenu.addItem(item)
+            }
+        }
+        submenu.addItem(.separator())
+        let addItem = NSMenuItem(title: "Add App…", action: #selector(addWatchedAppViaPicker), keyEquivalent: "")
+        addItem.target = self
+        submenu.addItem(addItem)
+        return submenu
     }
 
     // AGENT NOTE: The Position Tuner debug window (PositionTunerView, showPositionTuner(),
@@ -853,6 +994,37 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func toggleLaunchAtLogin() {
         manager.setLaunchAtLogin(!manager.launchAtLogin)
+    }
+
+    @objc private func addWatchedAppViaPicker() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.application]
+        panel.directoryURL = URL(fileURLWithPath: "/Applications")
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.prompt = "Add"
+        NSApp.activate(ignoringOtherApps: true)
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        guard let bundle = Bundle(url: url), let bundleID = bundle.bundleIdentifier else {
+            notifyPickerFailure()
+            return
+        }
+        let displayName = FileManager.default.displayName(atPath: url.path)
+            .replacingOccurrences(of: ".app", with: "")
+        manager.addWatchedApp(bundleID: bundleID, displayName: displayName)
+    }
+
+    private func notifyPickerFailure() {
+        let alert = NSAlert()
+        alert.messageText = "Couldn't Read That App"
+        alert.informativeText = "That didn't look like a valid application bundle."
+        alert.runModal()
+    }
+
+    @objc private func removeWatchedApp(_ sender: NSMenuItem) {
+        guard let bundleID = sender.representedObject as? String else { return }
+        manager.removeWatchedApp(bundleID: bundleID)
     }
 
     @objc private func openSetupFlow() {
