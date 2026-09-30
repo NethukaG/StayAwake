@@ -7,6 +7,20 @@
         <language>en</language>
 <!-- RELEASES -->
         <item>
+            <title>Version 1.12.1</title>
+            <pubDate>Wed, 30 Sep 2026 15:22:50 +0000</pubDate>
+            <sparkle:version>1.12.1</sparkle:version>
+            <sparkle:shortVersionString>1.12.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<ul><li>Fixed the update dialogs showing a generic placeholder icon instead of the real Stay Awake icon.</li></ul>]]></description>
+            <enclosure
+                url="https://github.com/NethukaG/StayAwake/releases/download/v1.12.1/StayAwake.dmg"
+                sparkle:edSignature="+vDWn5MAA+O+KqXcN06Jz90Dpe0OlYJmELZc9aFjE8OH8Y7CTIsmntvO80HCMbw0IuHzhqrPDPXn/lY+w5wJDg=="
+                length="1208977"
+                type="application/octet-stream" />
+        </item>
+
+        <item>
             <title>Version 1.12.0</title>
             <pubDate>Wed, 30 Sep 2026 15:08:27 +0000</pubDate>
             <sparkle:version>1.12.0</sparkle:version>

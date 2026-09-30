@@ -751,6 +751,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
 
+        // Accessory apps (no Dock icon) don't get NSApp.applicationIconImage populated
+        // automatically the way a normal foreground app does, so anything AppKit itself
+        // draws an app icon for -- notably Sparkle's "Check for Updates" / "Update available"
+        // dialogs -- falls back to a generic placeholder instead of the real icon unless this
+        // is set explicitly.
+        if let iconPath = Bundle.main.path(forResource: "AppIcon", ofType: "icns"),
+           let icon = NSImage(contentsOfFile: iconPath) {
+            NSApp.applicationIconImage = icon
+        }
+
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         updateIcon()
         if let button = statusItem.button {
