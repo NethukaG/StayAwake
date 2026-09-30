@@ -1039,7 +1039,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 // MARK: - First-run guided setup flow
 
 private enum SetupStep: Int, CaseIterable {
-    case welcome, notifications, launchAtLogin, lidClosed, done
+    case welcome, notifications, launchAtLogin, lidClosed, autoEnable, done
 }
 
 private enum PermissionState { case notAsked, granted, denied }
@@ -1052,6 +1052,7 @@ struct SetupFlowView: View {
     @State private var step: SetupStep = .welcome
     @State private var notifState: PermissionState = .notAsked
     @State private var helperState: HelperSetupState = .idle
+    @State private var autoEnableAddedName: String?
 
     var body: some View {
         ZStack {
@@ -1160,6 +1161,41 @@ struct SetupFlowView: View {
                     }
                 }
             }
+        case .autoEnable:
+            SetupStepCard(
+                systemImage: "bolt.badge.automatic.fill",
+                tint: .yellow,
+                title: "Auto-Enable For Apps",
+                description: "Optional. Pick apps that shouldn't be interrupted, like a renderer, a long build, or a screen-share tool. Stay Awake turns itself on the moment one launches and back off once it quits, no need to remember to flip the toggle."
+            ) {
+                VStack(spacing: 10) {
+                    if manager.watchedApps.isEmpty {
+                        Button("Add an App\u{2026}") {
+                            addWatchedAppViaPicker()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        if let name = autoEnableAddedName {
+                            Label("Added \(name)", systemImage: "checkmark.circle.fill")
+                                .foregroundStyle(.green)
+                                .font(.caption)
+                        }
+                    } else {
+                        ForEach(manager.watchedApps) { app in
+                            Text(app.displayName)
+                                .font(.callout)
+                        }
+                        Button("Add Another\u{2026}") {
+                            addWatchedAppViaPicker()
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                    }
+                    Text("You can add or remove apps anytime from the right-click menu.")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+            }
         case .done:
             SetupStepCard(
                 systemImage: "checkmark.seal.fill",
@@ -1168,6 +1204,23 @@ struct SetupFlowView: View {
                 description: "Click the bolt icon in the menu bar to turn Stay Awake on or off. Right-click it anytime for settings, including anything you skipped here."
             )
         }
+    }
+
+    private func addWatchedAppViaPicker() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.application]
+        panel.directoryURL = URL(fileURLWithPath: "/Applications")
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.prompt = "Add"
+        NSApp.activate(ignoringOtherApps: true)
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        guard let bundle = Bundle(url: url), let bundleID = bundle.bundleIdentifier else { return }
+        let displayName = FileManager.default.displayName(atPath: url.path)
+            .replacingOccurrences(of: ".app", with: "")
+        manager.addWatchedApp(bundleID: bundleID, displayName: displayName)
+        autoEnableAddedName = displayName
     }
 
     private var footer: some View {
@@ -1206,6 +1259,7 @@ struct SetupFlowView: View {
         case .welcome: return "Get Started"
         case .notifications, .launchAtLogin: return "Continue"
         case .lidClosed: return helperState == .success ? "Continue" : "Skip for Now"
+        case .autoEnable: return manager.watchedApps.isEmpty ? "Skip for Now" : "Continue"
         case .done: return "Finish"
         }
     }

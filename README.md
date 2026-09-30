@@ -115,11 +115,13 @@ this project ever justifies the cost.
 
 The first time StayAwake opens, a themed setup window walks through a
 handful of short steps, live, one at a time: notifications, launch at
-login, and lid-closed mode (with its one-time admin-password install
-actually happening on that screen, not just described). Everything in it
-is optional except clicking through, and every choice you make there can
-be changed later from the right-click menu, including reopening the
-whole guide again via **Show Setup Guide…**.
+login, lid-closed mode (with its one-time admin-password install
+actually happening on that screen, not just described), and auto-enable
+for apps, where you can add the first app right there instead of
+finding the menu item later. Everything in it is optional except
+clicking through, and every choice you make there can be changed later
+from the right-click menu, including reopening the whole guide again
+via **Show Setup Guide…**.
 
 ## Using it
 
